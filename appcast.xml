@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
+    <channel>
+        <title>Yap</title>
+        <link>https://github.com/zainzafar90/yap</link>
+        <description>Yap releases</description>
+        <language>en</language>
+        <item>
+            <title>Yap 0.1.0</title>
+            <pubDate>Mon, 09 Mar 2026 00:00:00 +0000</pubDate>
+            <enclosure url="https://github.com/zainzafar90/yap/releases/download/0.1.0/Yap-0.1.0.zip" length="3583882" type="application/octet-stream" sparkle:edSignature="q8QPdsACxuzR50VGoodPje03WLuIrWaHzwIMayunAjfs9TI6RYMJyqKLIPX2eRZQZbKwmMygZb00Fl4bRYe2Dw=="/>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+        </item>
+    </channel>
+</rss>
