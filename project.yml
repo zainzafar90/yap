@@ -1,0 +1,81 @@
+name: Yap
+options:
+  bundleIdPrefix: net.zainzafar
+  deploymentTarget:
+    macOS: "26.0"
+  xcodeVersion: "26.3"
+  generateEmptyDirectories: true
+
+packages:
+  WhisperKit:
+    url: https://github.com/argmaxinc/WhisperKit.git
+    majorVersion: 0.15.0
+  FluidAudio:
+    url: https://github.com/FluidInference/FluidAudio.git
+    branch: main
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    majorVersion: 2.0.0
+
+configFiles:
+  Debug: Local.xcconfig
+  Release: Local.xcconfig
+
+schemes:
+  Yap:
+    build:
+      targets:
+        Yap: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+
+targets:
+  Yap:
+    type: application
+    platform: macOS
+    sources:
+      - Yap
+    info:
+      path: Yap/Info.plist
+      properties:
+        LSUIElement: true
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        NSMicrophoneUsageDescription: "Yap needs microphone access to transcribe your speech."
+        NSSpeechRecognitionUsageDescription: "Yap needs speech recognition access to transcribe your speech."
+        SUFeedURL: "https://raw.githubusercontent.com/zainzafar90/yap/main/appcast.xml"
+        SUPublicEDKey: "Gr/ZmTF4JnJKLDWr1rjMiKsqX7zggipQkLgoEh/My/A="
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: net.zainzafar.yap
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        CODE_SIGN_STYLE: Automatic
+        SWIFT_VERSION: "6.0"
+        MACOSX_DEPLOYMENT_TARGET: "26.0"
+        ARCHS: arm64
+    entitlements:
+      path: Yap/Yap.entitlements
+      properties:
+        com.apple.security.device.audio-input: true
+    dependencies:
+      - package: WhisperKit
+      - package: FluidAudio
+      - package: Sparkle
+        product: Sparkle
+
+  YapTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - YapTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: net.zainzafar.yap.tests
+        GENERATE_INFOPLIST_FILE: true
+        SWIFT_VERSION: "6.0"
+        MACOSX_DEPLOYMENT_TARGET: "26.0"
+    dependencies:
+      - target: Yap
