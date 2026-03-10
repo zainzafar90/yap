@@ -1,34 +1,52 @@
 import AppKit
+import ApplicationServices
 
 @MainActor
 struct Typist {
     static func paste(_ text: String) {
         guard !text.isEmpty else { return }
 
-        let output = text
-
         let pasteboard = NSPasteboard.general
         let savedItems = saveContents(pasteboard)
 
         pasteboard.clearContents()
-        pasteboard.setString(output, forType: .string)
+        pasteboard.setString(text, forType: .string)
 
-        simulatePaste()
+        simulatePaste(pid: focusedPid())
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             restoreContents(pasteboard, items: savedItems)
         }
     }
 
-    private static func simulatePaste() {
+    private static func focusedPid() -> pid_t? {
+        let systemWide = AXUIElementCreateSystemWide()
+        var focusedApp: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(systemWide, kAXFocusedApplicationAttribute as CFString, &focusedApp) == .success else {
+            return nil
+        }
+        var pid: pid_t = 0
+        guard AXUIElementGetPid(focusedApp as! AXUIElement, &pid) == .success else {
+            return nil
+        }
+        return pid
+    }
+
+    private static func simulatePaste(pid: pid_t? = nil) {
         let source  = CGEventSource(stateID: .hidSystemState)
         let vKey:   CGKeyCode = 0x09
         let down = CGEvent(keyboardEventSource: source, virtualKey: vKey, keyDown: true)
         let up   = CGEvent(keyboardEventSource: source, virtualKey: vKey, keyDown: false)
         down?.flags = .maskCommand
         up?.flags   = .maskCommand
-        down?.post(tap: .cgAnnotatedSessionEventTap)
-        up?.post(tap: .cgAnnotatedSessionEventTap)
+
+        if let pid {
+            down?.postToPid(pid)
+            up?.postToPid(pid)
+        } else {
+            down?.post(tap: .cghidEventTap)
+            up?.post(tap: .cghidEventTap)
+        }
     }
 
     private struct SavedItem {
