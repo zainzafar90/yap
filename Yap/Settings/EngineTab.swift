@@ -487,7 +487,7 @@ struct EngineTab: View {
                 if progress < 0 {
                     ProgressView()
                         .controlSize(.small)
-                    Text("Downloading\u{2026}")
+                    Text("Preparing model\u{2026}")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {

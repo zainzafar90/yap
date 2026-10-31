@@ -12,7 +12,7 @@ packages:
     majorVersion: 0.15.0
   FluidAudio:
     url: https://github.com/FluidInference/FluidAudio.git
-    branch: main
+    minorVersion: 0.18.0
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     majorVersion: 2.0.0

@@ -42,9 +42,12 @@ final class FluidCatalog {
         let task = Task {
             do {
                 try await AsrModels.download(version: .v3, progressHandler: { [weak self] p in
+                    let isCompiling: Bool
+                    if case .compiling = p.phase { isCompiling = true } else { isCompiling = false }
+                    let next = Self.displayProgress(fraction: p.fractionCompleted, isCompiling: isCompiling)
                     Task { @MainActor [weak self] in
-                        guard case .fetching = self?.status else { return }
-                        self?.status = .fetching(p.fractionCompleted)
+                        guard let self, case .fetching(let current) = self.status else { return }
+                        self.status = .fetching(Self.merge(current: current, next: next))
                     }
                 })
                 guard !Task.isCancelled else { return }
@@ -58,6 +61,22 @@ final class FluidCatalog {
         fetchTask = task
         await task.value
         fetchTask = nil
+    }
+
+    /// FluidAudio reports one 0–1 fraction per `loadModels` pass: 0–0.5 is the
+    /// download, 0.5–1 is CoreML compilation. `AsrModels.download` runs several
+    /// passes back to back, so the raw fraction jumps 100% → 50% repeatedly.
+    /// Map it to what the user cares about instead: download bytes as 0–1,
+    /// then an indeterminate "preparing" state (-1) once compilation starts.
+    nonisolated static func displayProgress(fraction: Double, isCompiling: Bool) -> Double {
+        isCompiling ? -1 : min(1, max(0, fraction / 0.5))
+    }
+
+    /// Never let the bar move backwards (callbacks can arrive out of order, and
+    /// later passes re-report the download phase), and once preparing, stay there.
+    nonisolated static func merge(current: Double, next: Double) -> Double {
+        if current < 0 || next < 0 { return -1 }
+        return max(current, next)
     }
 
     func cancelFetch() {
@@ -79,7 +98,7 @@ final class FluidCatalog {
             let dir = AsrModels.defaultCacheDirectory(for: .v3)
             let models = try await AsrModels.load(from: dir, version: .v3)
             let m = AsrManager(config: .default)
-            try await m.initialize(models: models)
+            try await m.loadModels(models)
             await MainActor.run { self.manager = m }
         }
         initTask = task

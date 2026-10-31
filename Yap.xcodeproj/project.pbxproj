@@ -24,6 +24,7 @@
 		39577D2960839A944B2F5095 /* SetupFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FB391DFD8BCA8457BD799A1 /* SetupFlow.swift */; };
 		3DE25839DC0A4DE8FF90AF90 /* WindowCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4A6804ED1C8D672F1CB463 /* WindowCoordinator.swift */; };
 		49709D1E1BD5F4EA8C557871 /* AudioDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65C5F23D3DB9E605E37BC367 /* AudioDevice.swift */; };
+		5361B9D1A917D6A36C73A99E /* FluidProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123DA21A55E46014614E8502 /* FluidProgressTests.swift */; };
 		5C457D4397735AA4C1E248E2 /* ParakeetEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA85DECA0B691F430915C7FE /* ParakeetEngine.swift */; };
 		5C9B0FAD42B342A613D4615C /* HistoryTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73CD01D4E0AFE1700A66951D /* HistoryTab.swift */; };
 		5F9B944E603519562EF4B39D /* ShortcutListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C45B0996CD76D36A647CBF5 /* ShortcutListener.swift */; };
@@ -64,6 +65,7 @@
 		0A376B1837E37AEF42D27360 /* PreferencesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesTests.swift; sourceTree = "<group>"; };
 		0BDB5C23D05C963420B7B3B3 /* WhisperEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperEngine.swift; sourceTree = "<group>"; };
 		0FB391DFD8BCA8457BD799A1 /* SetupFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupFlow.swift; sourceTree = "<group>"; };
+		123DA21A55E46014614E8502 /* FluidProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FluidProgressTests.swift; sourceTree = "<group>"; };
 		1921B81085A77F882B096FCA /* WhisperCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperCatalog.swift; sourceTree = "<group>"; };
 		1FAD0E173C38D9CC96FE577A /* VocabularyTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyTab.swift; sourceTree = "<group>"; };
 		22E1137417F582002F5AD089 /* ActivityLogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityLogTests.swift; sourceTree = "<group>"; };
@@ -265,6 +267,7 @@
 			isa = PBXGroup;
 			children = (
 				22E1137417F582002F5AD089 /* ActivityLogTests.swift */,
+				123DA21A55E46014614E8502 /* FluidProgressTests.swift */,
 				0A376B1837E37AEF42D27360 /* PreferencesTests.swift */,
 				C60A727C7FFC9E50262F5812 /* ShortcutBindingTests.swift */,
 				E79FBB3A369DE1FA010A5037 /* TypistTests.swift */,
@@ -385,6 +388,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C6B35CC7A65B7A09331EC56D /* ActivityLogTests.swift in Sources */,
+				5361B9D1A917D6A36C73A99E /* FluidProgressTests.swift in Sources */,
 				A3DAF65C81F377AF59AA40A0 /* PreferencesTests.swift in Sources */,
 				2B431275C57555F5972AC262 /* ShortcutBindingTests.swift in Sources */,
 				D30A30AABF32EDE678974FDB /* TypistTests.swift in Sources */,
@@ -690,8 +694,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/FluidInference/FluidAudio.git";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.18.0;
 			};
 		};
 		9C867CA35AB66FE35F41111E /* XCRemoteSwiftPackageReference "Sparkle" */ = {
