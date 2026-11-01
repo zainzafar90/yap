@@ -122,7 +122,9 @@ final class ParakeetEngine: VoiceEngine {
             let text = try await Task.detached(priority: .userInitiated) {
                 let m = wrappedManager.value
                 defer { try? FileManager.default.removeItem(at: tempURL) }
-                let result = try await m.transcribe(tempURL, source: .system)
+                // Each push-to-talk clip is independent, so start from a fresh decoder state.
+                var decoderState = try TdtDecoderState(decoderLayers: await m.decoderLayerCount)
+                let result = try await m.transcribe(tempURL, decoderState: &decoderState)
                 return result.text
                     .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
                     .trimmingCharacters(in: .whitespacesAndNewlines)
