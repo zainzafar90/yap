@@ -22,9 +22,16 @@ final class FluidCatalog {
 
     private var initTask:  Task<Void, any Error>?
     private var fetchTask: Task<Void, Never>?
+    /// Identifies the current `fetch()` so progress callbacks from a cancelled
+    /// earlier run can't overwrite the state of a newer one.
+    private var fetchRun = 0
 
     init() {
         probe()
+        if case .absent = status,
+           Self.canCompleteLegacyInstall(at: AsrModels.defaultCacheDirectory(for: .v3)) {
+            Task { await fetch() }
+        }
     }
 
     var isManagerLoaded: Bool { manager != nil }
@@ -37,6 +44,8 @@ final class FluidCatalog {
 
     func fetch() async {
         guard case .absent = status else { return }
+        fetchRun += 1
+        let run = fetchRun
         status = .fetching(0)
 
         let task = Task {
@@ -46,7 +55,7 @@ final class FluidCatalog {
                     if case .compiling = p.phase { isCompiling = true } else { isCompiling = false }
                     let next = Self.displayProgress(fraction: p.fractionCompleted, isCompiling: isCompiling)
                     Task { @MainActor [weak self] in
-                        guard let self, case .fetching(let current) = self.status else { return }
+                        guard let self, self.fetchRun == run, case .fetching(let current) = self.status else { return }
                         self.status = .fetching(Self.merge(current: current, next: next))
                     }
                 })
@@ -79,6 +88,31 @@ final class FluidCatalog {
         return max(current, next)
     }
 
+    /// Files every compiled CoreML model folder in the Parakeet v3 repo contains.
+    /// FluidAudio moves each file into place only once fully downloaded, so a
+    /// folder holding all of them is complete.
+    nonisolated static let modelFolderFiles = [
+        "analytics/coremldata.bin", "coremldata.bin", "metadata.json", "model.mil", "weights/weight.bin",
+    ]
+
+    /// Installs made before FluidAudio 0.16 lack `JointDecisionv3.mlmodelc` (~13 MB),
+    /// which v3 now requires. Returns true only when everything else is already
+    /// complete, so completing the install can never turn into a full ~600 MB
+    /// download (e.g. after an interrupted first download).
+    nonisolated static func canCompleteLegacyInstall(
+        at dir: URL, fileManager: FileManager = .default
+    ) -> Bool {
+        func folderComplete(_ name: String) -> Bool {
+            modelFolderFiles.allSatisfy {
+                fileManager.fileExists(atPath: dir.appendingPathComponent(name).appendingPathComponent($0).path)
+            }
+        }
+        let existing = ["Preprocessor.mlmodelc", "Encoder.mlmodelc", "Decoder.mlmodelc"]
+        return fileManager.fileExists(atPath: dir.appendingPathComponent("parakeet_vocab.json").path)
+            && existing.allSatisfy(folderComplete)
+            && !folderComplete("JointDecisionv3.mlmodelc")
+    }
+
     func cancelFetch() {
         fetchTask?.cancel()
         fetchTask = nil
@@ -89,6 +123,12 @@ final class FluidCatalog {
 
     func resolveManager() async throws -> AsrManager {
         if let existing = manager { return existing }
+        // Loading while a download is still writing files would fail and mark
+        // the engine broken; wait for the download instead.
+        if let download = fetchTask {
+            await download.value
+            guard case .live = status else { throw FluidError.managerUnavailable }
+        }
         if let existing = initTask {
             try await existing.value
             if let m = manager { return m }

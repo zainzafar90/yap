@@ -50,3 +50,78 @@ final class FluidProgressTests: XCTestCase {
         XCTAssertTrue(history.dropFirst(downloading.count).allSatisfy { $0 < 0 }, "must stay in preparing state")
     }
 }
+
+// MARK: - Completing pre-0.16 Parakeet installs
+
+final class FluidLegacyInstallTests: XCTestCase {
+
+    private var dir: URL!
+
+    override func setUpWithError() throws {
+        dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("FluidLegacyInstallTests-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    }
+
+    override func tearDownWithError() throws {
+        try? FileManager.default.removeItem(at: dir)
+    }
+
+    private func touch(_ relativePath: String) throws {
+        let url = dir.appendingPathComponent(relativePath)
+        try FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        FileManager.default.createFile(atPath: url.path, contents: Data())
+    }
+
+    private func makeFolder(_ name: String, skipping skipped: String? = nil) throws {
+        for file in FluidCatalog.modelFolderFiles where file != skipped {
+            try touch("\(name)/\(file)")
+        }
+    }
+
+    /// What FluidAudio before 0.16 left on disk after a finished download.
+    private func makeLegacyInstall() throws {
+        try touch("parakeet_vocab.json")
+        for name in ["Preprocessor", "Encoder", "Decoder", "JointDecision"] {
+            try makeFolder("\(name).mlmodelc")
+        }
+    }
+
+    func testCompleteLegacyInstallIsCompleted() throws {
+        try makeLegacyInstall()
+        XCTAssertTrue(FluidCatalog.canCompleteLegacyInstall(at: dir))
+    }
+
+    func testPartialNewJointFolderIsStillCompleted() throws {
+        try makeLegacyInstall()
+        try makeFolder("JointDecisionv3.mlmodelc", skipping: "weights/weight.bin")
+        XCTAssertTrue(FluidCatalog.canCompleteLegacyInstall(at: dir))
+    }
+
+    func testUpToDateInstallIsLeftAlone() throws {
+        try makeLegacyInstall()
+        try makeFolder("JointDecisionv3.mlmodelc")
+        XCTAssertFalse(FluidCatalog.canCompleteLegacyInstall(at: dir))
+    }
+
+    /// The encoder weights are ~445 MB; an interrupted download must not be resumed silently.
+    func testInterruptedDownloadMissingEncoderWeightsIsLeftAlone() throws {
+        try touch("parakeet_vocab.json")
+        try makeFolder("Preprocessor.mlmodelc")
+        try makeFolder("Encoder.mlmodelc", skipping: "weights/weight.bin")
+        try makeFolder("Decoder.mlmodelc")
+        XCTAssertFalse(FluidCatalog.canCompleteLegacyInstall(at: dir))
+    }
+
+    func testMissingVocabularyIsLeftAlone() throws {
+        try makeLegacyInstall()
+        try FileManager.default.removeItem(at: dir.appendingPathComponent("parakeet_vocab.json"))
+        XCTAssertFalse(FluidCatalog.canCompleteLegacyInstall(at: dir))
+    }
+
+    func testNoInstallIsLeftAlone() {
+        XCTAssertFalse(FluidCatalog.canCompleteLegacyInstall(at: dir))
+        XCTAssertFalse(FluidCatalog.canCompleteLegacyInstall(at: dir.appendingPathComponent("missing")))
+    }
+}
