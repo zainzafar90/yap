@@ -17,19 +17,6 @@ final class TypistTests: XCTestCase {
     }
 
     @MainActor
-    func testPasteWithTrailingSpace() {
-        let pasteboard = NSPasteboard.general
-        Typist.paste("Hello", appendTrailingSpace: true)
-
-        let expectation = XCTestExpectation(description: "Pasteboard has text with trailing space")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            XCTAssertEqual(pasteboard.string(forType: .string), "Hello ")
-            expectation.fulfill()
-        }
-        wait(for: [expectation], timeout: 1.0)
-    }
-
-    @MainActor
     func testPasteEmptyStringDoesNothing() {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()

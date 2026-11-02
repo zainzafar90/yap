@@ -28,6 +28,10 @@ schemes:
         Yap: all
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - YapTests
     archive:
       config: Release
 
